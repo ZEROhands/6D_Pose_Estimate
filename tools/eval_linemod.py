@@ -39,8 +39,8 @@ num_points = 500
 
 iteration =8
 bs = 1
-dataset_config_dir = 'datasets/linemod/dataset_config'
-output_result_dir = 'experiments/eval_result/linemod'
+dataset_config_dir = '../datasets/linemod/dataset_config'
+output_result_dir = '../experiments/eval_result/linemod'
 knn = KNearestNeighbor(1)
 
 estimator = PoseNet(num_points = num_points, num_obj = num_objects)
