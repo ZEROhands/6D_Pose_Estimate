@@ -59,34 +59,34 @@ class ModifiedResnet(nn.Module):
 
 
 
-class SEblock(nn.Module):  # 注意力机制模块
-    def __init__(self, channel, r=0.5):  # channel为输入的维度, r为全连接层缩放比例->控制中间层个数
+class SEblock(nn.Module):
+    def __init__(self, channel, r=0.5):
         super(SEblock, self).__init__()
-        # 全局均值池化
+
         self.global_avg_pool = nn.AdaptiveAvgPool1d(1)
-        # 全连接层
+
         self.fc = nn.Sequential(
-            nn.Linear(channel, int(channel * r)),  # int(channel * r)取整数
+            nn.Linear(channel, int(channel * r)),
             nn.ReLU(),
             nn.Linear(int(channel * r), channel),
             nn.Sigmoid(),
         )
 
     def forward(self, x):
-        # 对x进行分支计算权重, 进行全局均值池化
+
         branch = self.global_avg_pool(x)
         branch = branch.view(branch.size(0), -1)
 
 
-        # 全连接层得到权重
+
         weight = self.fc(branch)
         # print(weight.shape)
 
-        # 将维度为b, c的weight, reshape成b, c, 1, 1 与 输入x 相乘
+
         b,c = weight.shape
         weight = torch.reshape(weight, (b, c, 1))
 
-        # 乘积获得结果
+
         scale = weight * x
         return scale
 
@@ -95,30 +95,26 @@ class MTAP(nn.Module):
         super(MTAP, self).__init__()
 
         self.branch1 = nn.Sequential(
-            nn.MaxPool1d(3, 1, padding=1),  # 1.最大池化分支,原文设置的尺寸大小为3, 未说明stride以及padding, 为与原图大小保持一致, 使用(3, 1, 1)
+            nn.MaxPool1d(3, 1, padding=1),
         )
         self.branch2 = nn.Sequential(
-            nn.AvgPool1d(3, 1, padding=1),  # 2.平均池化分支, 原文设置的池化尺寸为2, 未说明stride以及padding, 为与原图大小保持一致, 使用(3, 1, 1)
+            nn.AvgPool1d(3, 1, padding=1),
         )
 
         self.branch3_1 = nn.Sequential(
             nn.Conv1d(channel, int(channel/4), 1),
-            nn.Conv1d(int(channel/4), int(channel/4), 3, padding=1),  # 3_1分支, 先用1×1卷积压缩通道维数, 然后使用两个3×3卷积进行特征提取, 由于通道数为3//2, 此时输出维度设为1
+            nn.Conv1d(int(channel/4), int(channel/4), 3, padding=1),
             nn.Conv1d(int(channel/4), int(channel/4), 3, padding=1),
         )
 
         self.branch3_2 = nn.Sequential(
-            nn.Conv1d(channel, int(channel*3/4), 1),  # 3_2分支, 由于1×1卷积压缩通道维数减半, 但是这儿维度为3, 上面用的1, 所以这儿输出维度设为2
+            nn.Conv1d(channel, int(channel*3/4), 1),
             nn.Conv1d(int(channel*3/4), int(channel*3/4), 3, padding=1)
         )
-        # 注意力机制
+
         self.branch_SE = SEblock(channel = channel)
 
-        # 初始化可学习权重系数
-        # nn.Parameter 初始化的权重, 如果作用到网络中的话, 那么它会被添加到优化器更新的参数中, 优化器更新的时候会纠正Parameter的值, 使得向损失函数最小化的方向优化
 
-        # self.w = nn.Parameter(torch.ones(5))  # 4个分支, 每个分支设置一个自适应学习权重, 初始化为1, nn.Parameter需放入Tensor类型的数据
-        # self.w = nn.Parameter(torch.Tensor([0.5, 0.25, 0.15, 0.1]), requires_grad=False)  # 设置固定的权重系数, 不用归一化, 直接乘过去
 
     def forward(self, x,weight):
         b1 = self.branch1(x)
@@ -130,11 +126,7 @@ class MTAP(nn.Module):
         b3 = self.branch_SE(b3_Combine)
 
         b4 = x
-        #
-        # print("b1:", b1.shape)
-        # print("b2:", b2.shape)
-        # print("b3:", b3.shape)
-        # print("b4:", b4.shape)
+
 
         # 归一化权重
         w1 = torch.exp(weight[0]) / torch.sum(torch.exp(weight))
