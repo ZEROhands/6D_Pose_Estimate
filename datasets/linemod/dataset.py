@@ -89,9 +89,9 @@ class PoseDataset(data.Dataset):
         self.border_list = [-1, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400, 440, 480, 520, 560, 600, 640, 680]
         self.num_pt_mesh_large = 500
         self.num_pt_mesh_small = 500
-        # self.symmetry_obj_idx = [7, 8]
+        self.symmetry_obj_idx = [7, 8]
 
-        self.symmetry_obj_idx = []
+        # self.symmetry_obj_idx = []
     def __getitem__(self, index):
         cv2.setNumThreads(0)
         img = Image.open(self.list_rgb[index])
@@ -137,7 +137,7 @@ class PoseDataset(data.Dataset):
 
 
         img_masked = img_masked[:, rmin:rmax, cmin:cmax]
-        img_masked = cv2.resize(img_masked.transpose(1, 2, 0),(80, 80)).transpose(2, 0, 1)
+        img_masked = cv2.resize(img_masked.transpose(1, 2, 0),(128, 128)).transpose(2, 0, 1)
 
 
         target_r = np.resize(np.array(meta['cam_R_m2c']), (3, 3))
@@ -149,7 +149,7 @@ class PoseDataset(data.Dataset):
         tmp = np.zeros(shape=(a.shape[0], a.shape[1], 3))
         for i in range(3):
             tmp[:, :, i] = a
-        a = cv2.resize(tmp, (80, 80))
+        a = cv2.resize(tmp, (128, 128))
         a = a[:, :, 0]
 
         choose = a.flatten().nonzero()[0]
@@ -171,7 +171,7 @@ class PoseDataset(data.Dataset):
         for i in range(3):
             tmp[:, :, i] = depth_masked
 
-        depth_masked = cv2.resize(tmp, (80, 80))
+        depth_masked = cv2.resize(tmp, (128, 128))
 
         depth_masked = depth_masked[:, :, 0]
         depth_masked = depth_masked.flatten()[choose][:, np.newaxis].astype(np.float32)
@@ -182,14 +182,14 @@ class PoseDataset(data.Dataset):
         tmp = np.zeros(shape=(b.shape[0], b.shape[1], 3))
         for i in range(3):
             tmp[:, :, i] = b
-        b = cv2.resize(tmp, (80, 80))
+        b = cv2.resize(tmp, (128, 128))
         b = b[:, :, 0]
 
         c = self.ymap[rmin:rmax, cmin:cmax]
         tmp = np.zeros(shape=(c.shape[0], c.shape[1], 3))
         for i in range(3):
             tmp[:, :, i] = c
-        c = cv2.resize(tmp, (80, 80))
+        c = cv2.resize(tmp, (128, 128))
         c = c[:, :, 0]
 
 
