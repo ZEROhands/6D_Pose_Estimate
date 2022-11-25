@@ -171,7 +171,7 @@ class PoseDataset(data.Dataset):
             img_masked = img_masked + np.random.normal(loc=0.0, scale=7.0, size=img_masked.shape)
 
 
-        img_masked =  cv2.resize(img_masked.transpose(1, 2, 0), (128, 128)).transpose(2, 0, 1)
+        img_masked =  cv2.resize(img_masked.transpose(1, 2, 0), (80, 80)).transpose(2, 0, 1)
 
 
         target_r = meta['poses'][:, :, idx][:, 0:3]
@@ -182,7 +182,7 @@ class PoseDataset(data.Dataset):
         tmp = np.zeros(shape=(a.shape[0], a.shape[1], 3))
         for i in range(3):
             tmp[:, :, i] = a
-        a = cv2.resize(tmp, (128, 128))
+        a = cv2.resize(tmp, (80, 80))
         a = a[:, :, 0]
 
         choose = a.flatten().nonzero()[0]
@@ -199,7 +199,7 @@ class PoseDataset(data.Dataset):
         for i in range(3):
             tmp[:, :, i] = depth_masked
 
-        depth_masked = cv2.resize(tmp, (128, 128))
+        depth_masked = cv2.resize(tmp, (80, 80))
 
         depth_masked = depth_masked[:, :, 0]
         depth_masked = depth_masked.flatten()[choose][:, np.newaxis].astype(np.float32)
@@ -208,14 +208,14 @@ class PoseDataset(data.Dataset):
         tmp = np.zeros(shape=(b.shape[0], b.shape[1], 3))
         for i in range(3):
             tmp[:, :, i] = b
-        b = cv2.resize(tmp, (128, 128))
+        b = cv2.resize(tmp, (80, 80))
         b = b[:, :, 0]
 
         c = self.ymap[rmin:rmax, cmin:cmax]
         tmp = np.zeros(shape=(c.shape[0], c.shape[1], 3))
         for i in range(3):
             tmp[:, :, i] = c
-        c = cv2.resize(tmp, (128, 128))
+        c = cv2.resize(tmp, (80, 80))
         c = c[:, :, 0]
 
         xmap_masked = b.flatten()[choose][:, np.newaxis].astype(np.float32)
